@@ -47,7 +47,7 @@ go mod tidy
 
 # Step 5: Build the Hugo binary
 echo "Building Hugo binary..."
-CGO_ENABLED=1 go build -tags "extended,withdeploy" -ldflags "-X github.com/gohugoio/hugo/common.BuildDate=$BUILD_DATE" -o $OUTPUT_BINARY
+CGO_ENABLED=1 go build -v -tags "extended,withdeploy" -ldflags "-X github.com/gohugoio/hugo/common.BuildDate=$BUILD_DATE" -o $OUTPUT_BINARY
 
 # Step 6: Display build success
 echo "Hugo binary built successfully: $(pwd)/$OUTPUT_BINARY"
