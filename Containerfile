@@ -23,6 +23,9 @@ RUN ./build-hugo.sh
 
 FROM alpine:latest
 
+# Install dependencies for building hugo
+RUN ["apk", "git"]
+
 ENV BUILD_DIR /temp/hugo
 
 # Set temp location for hugo binary
