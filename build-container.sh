@@ -7,8 +7,10 @@ CONTAINERFILE="Containerfile"
 BUILD_ARGS=""
 TAG_FILE="tag.txt"
 REGISTRY_URL="harbor.haow.fi"
-PROJECT_NAME="addei"
+PROJECT_NAME="hugo"
 REGISTRY_IMAGE="${REGISTRY_URL}/${PROJECT_NAME}/${IMAGE_NAME}"
+ARCHS=(amd64 arm64)
+JOBS="2"
 
 PUSH_IMAGE=false
 CLEAN_IMAGES=false
@@ -59,18 +61,31 @@ TAG="v${major}.${minor}"
 # Save the new tag to file
 echo "$TAG" > "$TAG_FILE"
 
-# Build the container image with both local and REGISTRY tags
-podman build \
-  -t "${IMAGE_NAME}:${TAG}" \
-  -t "${REGISTRY_IMAGE}:${TAG}" \
-  -f "${CONTAINERFILE}" \
-  ${BUILD_ARGS} \
-  "${CONTEXT}"
 
-echo "Container image '${IMAGE_NAME}:${TAG}' and '${REGISTRY_IMAGE}:${TAG}' built successfully."
+# Build images for each architecture
+for arch in "${ARCHS[@]}"; do
+  podman build \
+    --jobs="${JOBS}" \
+    --arch "${arch}" \
+    -t "${REGISTRY_IMAGE}:${TAG}-${arch}" \
+    -f "${CONTAINERFILE}" \
+    ${BUILD_ARGS} \
+    "${CONTEXT}"
+done
+
+# Create a manifest for the new tag
+podman manifest create ${REGISTRY_IMAGE}:${TAG}
+
+# Add images for each architecture
+for arch in "${ARCHS[@]}"; do
+  podman manifest add ${REGISTRY_IMAGE}:${TAG} ${REGISTRY_IMAGE}:${TAG}-${arch}
+done
+
+echo "Container images for architectures and manifest '${REGISTRY_IMAGE}:${TAG}' built successfully."
 
 # Push to REGISTRY if requested
 if [[ "$PUSH_IMAGE" == "true" ]]; then
-  podman push "${REGISTRY_IMAGE}:${TAG}"
+  # Push the manifest list
+  podman manifest push --all ${REGISTRY_IMAGE}:${TAG}
   echo "Image pushed to ${REGISTRY_IMAGE}:${TAG}"
 fi
