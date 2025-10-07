@@ -1,6 +1,6 @@
 #  Creator: Atte - https://github.com/addei
 
-FROM harbor.haow.fi/alpine/alpine:latest AS builder
+FROM alpine:latest AS builder
 
 # Project build directory
 ENV BUILD_DIR /temp/hugo
@@ -21,7 +21,7 @@ RUN chmod +x ./build-hugo.sh
 # Run build-hugo.sh
 RUN ./build-hugo.sh
 
-FROM harbor.haow.fi/alpine/alpine:latest
+FROM alpine:latest
 
 # Install dependencies for building hugo
 RUN ["apk", "add", "git"]
